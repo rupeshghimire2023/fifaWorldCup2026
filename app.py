@@ -405,6 +405,10 @@ def render_connector_for_pair(match1_id, match2_id, team1_home, team1_away, team
     <div style="position: absolute; top: 25%; right: 0; height: 50%; width: 0; border-right: {winner_width} solid {winner_color};"></div>
     <div style="position: absolute; bottom: 25%; left: 0; width: 100%; height: 0; border-top: {m2_width} solid {m2_color};"></div>
     <div style="position: absolute; top: 50%; right: -10px; width: 10px; height: 0; border-top: {winner_width} solid {winner_color};"></div>
+    <div style="position: absolute; top: 50%; right: -15px; width: 0; height: 0; 
+                border-left: 8px solid {winner_color}; 
+                border-top: 5px solid transparent; 
+                border-bottom: 5px solid transparent;"></div>
 </div>
 """
     else:
@@ -414,6 +418,10 @@ def render_connector_for_pair(match1_id, match2_id, team1_home, team1_away, team
     <div style="position: absolute; top: 25%; left: 0; height: 50%; width: 0; border-left: {winner_width} solid {winner_color};"></div>
     <div style="position: absolute; bottom: 25%; right: 0; width: 100%; height: 0; border-top: {m2_width} solid {m2_color};"></div>
     <div style="position: absolute; top: 50%; left: -10px; width: 10px; height: 0; border-top: {winner_width} solid {winner_color};"></div>
+    <div style="position: absolute; top: 50%; left: -15px; width: 0; height: 0; 
+                border-right: 8px solid {winner_color}; 
+                border-top: 5px solid transparent; 
+                border-bottom: 5px solid transparent;"></div>
 </div>
 """
 
