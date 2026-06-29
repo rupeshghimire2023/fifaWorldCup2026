@@ -1,6 +1,6 @@
 import streamlit as st
 from supabase_config import create_user, get_user_by_email, save_bracket, get_user_bracket, get_all_brackets
-from bracket_logic import load_bracket_data, is_selection_locked, get_teams_for_match, validate_bracket, get_available_teams_from_round32
+from bracket_logic import load_bracket_data, is_selection_locked, get_teams_for_match, validate_bracket, get_available_teams_from_round32, load_completed_matches, is_match_completed, get_completed_match_winner
 from country_flags import get_flag
 import os
 from dotenv import load_dotenv
@@ -294,6 +294,14 @@ def render_match_box(match, selections, locked, position_prefix):
     team_home = match['team_home']
     team_away = match['team_away']
     
+    # Check if this match is completed (result already determined)
+    is_completed = is_match_completed(match_id)
+    completed_winner = get_completed_match_winner(match_id) if is_completed else None
+    
+    # If match is completed, use the official result
+    if is_completed and completed_winner:
+        selections[str(match_id)] = completed_winner
+    
     # Resolve team names if they reference previous match winners
     if team_home.startswith('W'):
         prev_match_id = int(team_home[1:])
@@ -303,18 +311,25 @@ def render_match_box(match, selections, locked, position_prefix):
         team_away = selections.get(str(prev_match_id), 'TBD')
     
     winner = get_match_winner(match_id, selections)
-    can_select = team_home != 'TBD' and team_away != 'TBD' and not locked
+    
+    # Disable selection if match is completed OR locked OR teams not determined
+    can_select = team_home != 'TBD' and team_away != 'TBD' and not locked and not is_completed
     
     flag_home = get_flag(team_home)
     flag_away = get_flag(team_away)
     
+    # Match header with completed badge
+    match_header = f"Match {match_id} • {match.get('date', '')}"
+    if is_completed:
+        match_header = f"✅ {match_header} • FINAL"
+    
     # Render match container
     st.markdown(f"""
-        <div style="background: white; border: 2px solid #dee2e6; border-radius: 8px; 
+        <div style="background: white; border: 2px solid {'#28a745' if is_completed else '#dee2e6'}; border-radius: 8px; 
                     padding: 8px; margin: 5px 0;">
-            <div style="text-align: center; font-size: 10px; color: #666; 
+            <div style="text-align: center; font-size: 10px; color: {'#28a745' if is_completed else '#666'}; 
                         font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                Match {match_id} • {match.get('date', '')}
+                {match_header}
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -328,16 +343,29 @@ def render_match_box(match, selections, locked, position_prefix):
             </div>
         """, unsafe_allow_html=True)
     else:
-        if st.button(
-            f"{flag_home} {team_home}",
-            key=f"{position_prefix}_home_{match_id}_{team_home[:3]}",
-            disabled=not can_select,
-            use_container_width=True,
-            type="primary" if winner == team_home else "secondary"
-        ):
-            if can_select:
-                st.session_state.selections[str(match_id)] = team_home
-                st.rerun()
+        is_winner = winner == team_home
+        is_loser = is_completed and winner != team_home
+        
+        # Show disabled/grayed out for losers in completed matches
+        if is_loser:
+            st.markdown(f"""
+                <div style="padding: 8px; margin: 2px 0; background: #f0f0f0; 
+                            border: 1px solid #ddd; border-radius: 5px; text-align: center; 
+                            color: #999; font-size: 13px; text-decoration: line-through;">
+                    {flag_home} {team_home} ❌
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            if st.button(
+                f"{flag_home} {team_home} {'🏆' if is_completed and is_winner else ''}",
+                key=f"{position_prefix}_home_{match_id}_{team_home[:3]}",
+                disabled=not can_select,
+                use_container_width=True,
+                type="primary" if is_winner else "secondary"
+            ):
+                if can_select:
+                    st.session_state.selections[str(match_id)] = team_home
+                    st.rerun()
     
     if team_away == 'TBD':
         st.markdown(f"""
@@ -347,16 +375,28 @@ def render_match_box(match, selections, locked, position_prefix):
             </div>
         """, unsafe_allow_html=True)
     else:
-        if st.button(
-            f"{flag_away} {team_away}",
-            key=f"{position_prefix}_away_{match_id}_{team_away[:3]}",
-            disabled=not can_select,
-            use_container_width=True,
-            type="primary" if winner == team_away else "secondary"
-        ):
-            if can_select:
-                st.session_state.selections[str(match_id)] = team_away
-                st.rerun()
+        is_winner = winner == team_away
+        is_loser = is_completed and winner != team_away
+        
+        if is_loser:
+            st.markdown(f"""
+                <div style="padding: 8px; margin: 2px 0; background: #f0f0f0; 
+                            border: 1px solid #ddd; border-radius: 5px; text-align: center; 
+                            color: #999; font-size: 13px; text-decoration: line-through;">
+                    {flag_away} {team_away} ❌
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            if st.button(
+                f"{flag_away} {team_away} {'🏆' if is_completed and is_winner else ''}",
+                key=f"{position_prefix}_away_{match_id}_{team_away[:3]}",
+                disabled=not can_select,
+                use_container_width=True,
+                type="primary" if is_winner else "secondary"
+            ):
+                if can_select:
+                    st.session_state.selections[str(match_id)] = team_away
+                    st.rerun()
 
 def render_team_button(team_name, is_winner, can_select, match_id, position, locked):
     """Render a team selection button with proper styling"""

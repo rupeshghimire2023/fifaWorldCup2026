@@ -1,10 +1,29 @@
 import json
 from datetime import datetime
 import pytz
+import os
 
 def load_bracket_data():
     with open('bracket_data.json', 'r') as f:
         return json.load(f)
+
+def load_completed_matches():
+    """Load results of completed matches that are locked"""
+    completed_file = 'completed_matches.json'
+    if os.path.exists(completed_file):
+        with open(completed_file, 'r') as f:
+            return json.load(f)
+    return {}
+
+def is_match_completed(match_id):
+    """Check if a match has already been played"""
+    completed_matches = load_completed_matches()
+    return str(match_id) in completed_matches
+
+def get_completed_match_winner(match_id):
+    """Get the winner of a completed match"""
+    completed_matches = load_completed_matches()
+    return completed_matches.get(str(match_id))
 
 def is_selection_locked():
     est = pytz.timezone('US/Eastern')
