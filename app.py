@@ -433,36 +433,20 @@ def render_connector_for_pair(match1_id, match2_id, team1_home, team1_away, team
     line_width = "2px"
     
     if is_left_side:
-        # Left bracket: lines go from left matches to right (next round)
         return f"""
 <div style="height: 200px; position: relative; margin: 0; padding: 0;">
-    <!-- Horizontal line from match 1 -->
     <div style="position: absolute; top: 25%; left: 0; width: 50%; border-top: {line_width} solid {m1_color};"></div>
-    
-    <!-- Vertical line connecting two matches -->
     <div style="position: absolute; top: 25%; left: 50%; height: 50%; border-left: {line_width} solid {winner_color};"></div>
-    
-    <!-- Horizontal line from match 2 -->
     <div style="position: absolute; bottom: 25%; left: 0; width: 50%; border-top: {line_width} solid {m2_color};"></div>
-    
-    <!-- Horizontal line to next round -->
     <div style="position: absolute; top: 50%; left: 50%; width: 50%; border-top: {line_width} solid {winner_color};"></div>
 </div>
 """
     else:
-        # Right bracket: lines go from right matches to left (next round)
         return f"""
 <div style="height: 200px; position: relative; margin: 0; padding: 0;">
-    <!-- Horizontal line from match 1 -->
     <div style="position: absolute; top: 25%; right: 0; width: 50%; border-top: {line_width} solid {m1_color};"></div>
-    
-    <!-- Vertical line connecting two matches -->
     <div style="position: absolute; top: 25%; right: 50%; height: 50%; border-left: {line_width} solid {winner_color};"></div>
-    
-    <!-- Horizontal line from match 2 -->
     <div style="position: absolute; bottom: 25%; right: 0; width: 50%; border-top: {line_width} solid {m2_color};"></div>
-    
-    <!-- Horizontal line to next round -->
     <div style="position: absolute; top: 50%; right: 50%; width: 50%; border-top: {line_width} solid {winner_color};"></div>
 </div>
 """
