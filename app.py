@@ -401,95 +401,21 @@ def render_connector_for_pair(match1_id, match2_id, team1_home, team1_away, team
     if is_left_side:
         return f"""
 <div style="height: 200px; position: relative; display: flex; align-items: center; margin: 0; padding: 0; overflow: visible;">
-    <div style="position: absolute; top: 25%; left: 0; width: 100%; height: 0;">
-        <div style="border-top: {m1_width} solid {m1_color}; width: 100%;"></div>
-    </div>
+    <div style="position: absolute; top: 25%; left: 0; width: 100%; height: 0; border-top: {m1_width} solid {m1_color};"></div>
     <div style="position: absolute; top: 25%; right: 0; height: 50%; width: 0; border-right: {winner_width} solid {winner_color};"></div>
-    <div style="position: absolute; bottom: 25%; left: 0; width: 100%; height: 0;">
-        <div style="border-top: {m2_width} solid {m2_color}; width: 100%;"></div>
-    </div>
-    <div style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); width: 0; height: 0;">
-        <div style="border-top: {winner_width} solid {winner_color}; width: 20px; position: absolute; right: -20px;"></div>
-    </div>
+    <div style="position: absolute; bottom: 25%; left: 0; width: 100%; height: 0; border-top: {m2_width} solid {m2_color};"></div>
+    <div style="position: absolute; top: 50%; right: -10px; width: 10px; height: 0; border-top: {winner_width} solid {winner_color};"></div>
 </div>
 """
     else:
         return f"""
 <div style="height: 200px; position: relative; display: flex; align-items: center; margin: 0; padding: 0; overflow: visible;">
-    <div style="position: absolute; top: 25%; right: 0; width: 100%; height: 0;">
-        <div style="border-top: {m1_width} solid {m1_color}; width: 100%;"></div>
-    </div>
+    <div style="position: absolute; top: 25%; right: 0; width: 100%; height: 0; border-top: {m1_width} solid {m1_color};"></div>
     <div style="position: absolute; top: 25%; left: 0; height: 50%; width: 0; border-left: {winner_width} solid {winner_color};"></div>
-    <div style="position: absolute; bottom: 25%; right: 0; width: 100%; height: 0;">
-        <div style="border-top: {m2_width} solid {m2_color}; width: 100%;"></div>
-    </div>
-    <div style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); width: 0; height: 0;">
-        <div style="border-top: {winner_width} solid {winner_color}; width: 20px; position: absolute; left: -20px;"></div>
-    </div>
+    <div style="position: absolute; bottom: 25%; right: 0; width: 100%; height: 0; border-top: {m2_width} solid {m2_color};"></div>
+    <div style="position: absolute; top: 50%; left: -10px; width: 10px; height: 0; border-top: {winner_width} solid {winner_color};"></div>
 </div>
 """
-
-    # Classic tournament bracket connector
-    if is_left_side:
-        # Lines extend to the right
-        return f"""
-        <div style="display: flex; align-items: center; height: {spacing}; position: relative;">
-            <div style="width: 100%; height: 100%; position: relative;">
-                <!-- Top horizontal line from match -->
-                <div style="position: absolute; top: 25%; left: 0; width: 50%; 
-                            border-top: {home_width} solid {home_color};"></div>
-                
-                <!-- Vertical line connecting both matches -->
-                <div style="position: absolute; left: 50%; top: 25%; height: 50%; 
-                            border-left: {winner_width} solid {winner_color};"></div>
-                
-                <!-- Bottom horizontal line from match -->
-                <div style="position: absolute; bottom: 25%; left: 0; width: 50%; 
-                            border-top: {away_width} solid {away_color};"></div>
-                
-                <!-- Horizontal line to next round -->
-                <div style="position: absolute; top: 50%; left: 50%; width: 50%; 
-                            border-top: {winner_width} solid {winner_color};"></div>
-                
-                <!-- Arrow -->
-                <div style="position: absolute; top: 50%; right: 0; transform: translate(0, -50%); 
-                            width: 0; height: 0; 
-                            border-top: 6px solid transparent; 
-                            border-bottom: 6px solid transparent; 
-                            border-left: 10px solid {winner_color};"></div>
-            </div>
-        </div>
-        """
-    else:
-        # Lines extend to the left
-        return f"""
-        <div style="display: flex; align-items: center; height: {spacing}; position: relative;">
-            <div style="width: 100%; height: 100%; position: relative;">
-                <!-- Top horizontal line from match -->
-                <div style="position: absolute; top: 25%; right: 0; width: 50%; 
-                            border-top: {home_width} solid {home_color};"></div>
-                
-                <!-- Vertical line connecting both matches -->
-                <div style="position: absolute; right: 50%; top: 25%; height: 50%; 
-                            border-right: {winner_width} solid {winner_color};"></div>
-                
-                <!-- Bottom horizontal line from match -->
-                <div style="position: absolute; bottom: 25%; right: 0; width: 50%; 
-                            border-top: {away_width} solid {away_color};"></div>
-                
-                <!-- Horizontal line to next round -->
-                <div style="position: absolute; top: 50%; right: 50%; width: 50%; 
-                            border-top: {winner_width} solid {winner_color};"></div>
-                
-                <!-- Arrow -->
-                <div style="position: absolute; top: 50%; left: 0; transform: translate(0, -50%); 
-                            width: 0; height: 0; 
-                            border-top: 6px solid transparent; 
-                            border-bottom: 6px solid transparent; 
-                            border-right: 10px solid {winner_color};"></div>
-            </div>
-        </div>
-        """
 
 def bracket_page():
     st.markdown("""
