@@ -1,0 +1,38 @@
+COUNTRY_FLAGS = {
+    "South Africa": "🇿🇦",
+    "Canada": "🇨🇦",
+    "Germany": "🇩🇪",
+    "Paraguay": "🇵🇾",
+    "Netherlands": "🇳🇱",
+    "Morocco": "🇲🇦",
+    "Brazil": "🇧🇷",
+    "Japan": "🇯🇵",
+    "Ivory Coast": "🇨🇮",
+    "Norway": "🇳🇴",
+    "France": "🇫🇷",
+    "Sweden": "🇸🇪",
+    "Mexico": "🇲🇽",
+    "Ecuador": "🇪🇨",
+    "England": "🇬🇧",
+    "DR Congo": "🇨🇩",
+    "Belgium": "🇧🇪",
+    "Senegal": "🇸🇳",
+    "United States": "🇺🇸",
+    "Bosnia & Herzegovina": "🇧🇦",
+    "Spain": "🇪🇸",
+    "Austria": "🇦🇹",
+    "Portugal": "🇵🇹",
+    "Croatia": "🇭🇷",
+    "Switzerland": "🇨🇭",
+    "Algeria": "🇩🇿",
+    "Australia": "🇦🇺",
+    "Egypt": "🇪🇬",
+    "Argentina": "🇦🇷",
+    "Cape Verde": "🇨🇻",
+    "Colombia": "🇨🇴",
+    "Ghana": "🇬🇭",
+    "TBD": "❓"
+}
+
+def get_flag(country_name):
+    return COUNTRY_FLAGS.get(country_name, "🏳️")

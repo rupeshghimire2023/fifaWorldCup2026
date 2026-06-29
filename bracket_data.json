@@ -1,0 +1,58 @@
+{
+  "tournament": "FIFA World Cup 2026",
+  "total_knockout_teams": 32,
+  "bracket": {
+    "round_of_32": [
+      { "match_id": 73, "date": "2026-06-28", "team_home": "South Africa", "team_away": "Canada", "venue": "Los Angeles Stadium" },
+      { "match_id": 74, "date": "2026-06-29", "team_home": "Germany", "team_away": "Paraguay", "venue": "Boston Stadium" },
+      { "match_id": 75, "date": "2026-06-29", "team_home": "Netherlands", "team_away": "Morocco", "venue": "Estadio Monterrey" },
+      { "match_id": 76, "date": "2026-06-29", "team_home": "Brazil", "team_away": "Japan", "venue": "Houston Stadium" },
+      { "match_id": 77, "date": "2026-06-30", "team_home": "France", "team_away": "Sweden", "venue": "New York New Jersey Stadium" },
+      { "match_id": 78, "date": "2026-06-30", "team_home": "Ivory Coast", "team_away": "Norway", "venue": "Dallas Stadium" },
+      { "match_id": 79, "date": "2026-06-30", "team_home": "Mexico", "team_away": "Ecuador", "venue": "Mexico City Stadium" },
+      { "match_id": 80, "date": "2026-07-01", "team_home": "England", "team_away": "DR Congo", "venue": "Atlanta Stadium" },
+      { "match_id": 81, "date": "2026-07-01", "team_home": "United States", "team_away": "Bosnia & Herzegovina", "venue": "San Francisco Bay Area Stadium" },
+      { "match_id": 82, "date": "2026-07-01", "team_home": "Belgium", "team_away": "Senegal", "venue": "Seattle Stadium" },
+      { "match_id": 83, "date": "2026-07-02", "team_home": "Portugal", "team_away": "Croatia", "venue": "Toronto Stadium" },
+      { "match_id": 84, "date": "2026-07-02", "team_home": "Spain", "team_away": "Austria", "venue": "Los Angeles Stadium" },
+      { "match_id": 85, "date": "2026-07-02", "team_home": "Switzerland", "team_away": "Algeria", "venue": "BC Place Vancouver" },
+      { "match_id": 86, "date": "2026-07-03", "team_home": "Argentina", "team_away": "Cape Verde", "venue": "Miami Stadium" },
+      { "match_id": 87, "date": "2026-07-03", "team_home": "Colombia", "team_away": "Ghana", "venue": "Kansas City Stadium" },
+      { "match_id": 88, "date": "2026-07-03", "team_home": "Australia", "team_away": "Egypt", "venue": "Dallas Stadium" }
+    ],
+    "round_of_16": [
+      { "match_id": 89, "date": "2026-07-04", "team_home": "W74", "team_away": "W77", "venue": "Philadelphia Stadium" },
+      { "match_id": 90, "date": "2026-07-04", "team_home": "W73", "team_away": "W75", "venue": "Houston Stadium" },
+      { "match_id": 91, "date": "2026-07-05", "team_home": "W76", "team_away": "W78", "venue": "New York New Jersey Stadium" },
+      { "match_id": 92, "date": "2026-07-05", "team_home": "W79", "team_away": "W80", "venue": "Mexico City Stadium" },
+      { "match_id": 93, "date": "2026-07-06", "team_home": "W83", "team_away": "W84", "venue": "Dallas Stadium" },
+      { "match_id": 94, "date": "2026-07-06", "team_home": "W81", "team_away": "W82", "venue": "Seattle Stadium" },
+      { "match_id": 95, "date": "2026-07-07", "team_home": "W86", "team_away": "W88", "venue": "Atlanta Stadium" },
+      { "match_id": 96, "date": "2026-07-07", "team_home": "W85", "team_away": "W87", "venue": "BC Place Vancouver" }
+    ],
+    "quarter_finals": [
+      { "match_id": 97, "date": "2026-07-09", "team_home": "W89", "team_away": "W90", "venue": "Boston Stadium" },
+      { "match_id": 98, "date": "2026-07-10", "team_home": "W93", "team_away": "W94", "venue": "Los Angeles Stadium" },
+      { "match_id": 99, "date": "2026-07-11", "team_home": "W91", "team_away": "W92", "venue": "Miami Stadium" },
+      { "match_id": 100, "date": "2026-07-11", "team_home": "W95", "team_away": "W96", "venue": "Kansas City Stadium" }
+    ],
+    "semi_finals": [
+      { "match_id": 101, "date": "2026-07-14", "team_home": "W97", "team_away": "W98", "venue": "Dallas Stadium" },
+      { "match_id": 102, "date": "2026-07-15", "team_home": "W99", "team_away": "W100", "venue": "Atlanta Stadium" }
+    ],
+    "third_place_playoff": {
+      "match_id": 103,
+      "date": "2026-07-18",
+      "team_home": "L101",
+      "team_away": "L102",
+      "venue": "Miami Stadium"
+    },
+    "final": {
+      "match_id": 104,
+      "date": "2026-07-19",
+      "team_home": "W101",
+      "team_away": "W102",
+      "venue": "New York New Jersey Stadium"
+    }
+  }
+}
