@@ -629,13 +629,6 @@ def bracket_page():
     
     st.markdown("---")
     
-    # Legend
-    st.markdown("""
-        <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-            <span style="color: #28a745; font-weight: bold;">━━</span> Team Selected (Advancing) &nbsp;&nbsp;|&nbsp;&nbsp;
-            <span style="color: #d0d0d0; font-weight: bold;">━━</span> No Selection Yet
-        </div>
-    """, unsafe_allow_html=True)
     
     # Split bracket with correct match order for proper paths
     # LEFT SIDE leads to M101, RIGHT SIDE leads to M102, both meet in FINAL (M104)
