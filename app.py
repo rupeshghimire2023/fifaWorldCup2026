@@ -438,6 +438,11 @@ def bracket_page():
         .bracket-header h1 {
             color: white;
             margin: 0;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+        }
+        .bracket-header h3 {
+            color: white;
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
         }
         .match-box {
             background: white;
@@ -463,7 +468,74 @@ def bracket_page():
             border-radius: 8px;
             margin-bottom: 15px;
         }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .stColumn {
+                min-width: 100px !important;
+            }
+            .round-title {
+                font-size: 12px;
+                padding: 5px;
+            }
+            .match-title {
+                font-size: 9px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .bracket-header h1 {
+                font-size: 1.2rem;
+            }
+            .bracket-header h3 {
+                font-size: 0.9rem;
+            }
+            .stColumn {
+                min-width: 80px !important;
+            }
+            .round-title {
+                font-size: 10px;
+                padding: 4px;
+            }
+            .match-title {
+                font-size: 8px;
+            }
+            .match-box {
+                padding: 5px;
+                margin: 5px 0;
+            }
+        }
+        
+        /* Hide elements on very small screens */
+        @media (max-width: 480px) {
+            .stColumn > div {
+                padding: 0 2px !important;
+            }
+        }
+        
+        /* Make the app scrollable horizontally on small screens */
+        .main > div {
+            overflow-x: auto;
+        }
+        
+        /* Ensure buttons remain readable */
+        button {
+            font-size: clamp(0.7rem, 2vw, 1rem) !important;
+        }
         </style>
+    """, unsafe_allow_html=True)
+    
+    # Add a warning for small screens
+    st.markdown("""
+        <script>
+        if (window.innerWidth < 768) {
+            const warningDiv = document.createElement('div');
+            warningDiv.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center;';
+            warningDiv.innerHTML = '📱 <strong>Tip:</strong> For the best experience, view on a larger screen or rotate your device to landscape mode.';
+            const main = document.querySelector('.main');
+            if (main) main.insertBefore(warningDiv, main.firstChild);
+        }
+        </script>
     """, unsafe_allow_html=True)
     
     st.markdown(f"""
@@ -518,6 +590,13 @@ def bracket_page():
     else:
         st.info("⏰ You can modify your bracket until July 4, 2026 at 12:00 PM EST")
     
+    # Mobile-friendly tip
+    st.markdown("""
+        <div style="text-align: center; margin: 10px 0; padding: 8px; background: #e7f3ff; border-radius: 5px; font-size: 14px;">
+            💡 <strong>Tip:</strong> Scroll horizontally ↔️ to view the entire bracket • Best viewed on desktop or landscape mode
+        </div>
+    """, unsafe_allow_html=True)
+    
     bracket_data = load_bracket_data()
     selections = st.session_state.selections
     
@@ -527,7 +606,7 @@ def bracket_page():
     st.markdown("""
         <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
             <span style="color: #28a745; font-weight: bold;">━━</span> Advancing Team &nbsp;&nbsp;|&nbsp;&nbsp;
-            <span style="color: #e0e0e0; font-weight: bold;">━━</span> Eliminated Team
+            <span style="color: #cccccc; font-weight: bold;">━━</span> Eliminated Team
         </div>
     """, unsafe_allow_html=True)
     
@@ -563,6 +642,9 @@ def bracket_page():
     left_sf = [sf_dict[101]]
     # RIGHT SIDE SF: M102
     right_sf = [sf_dict[102]]
+    
+    # Wrap bracket in scrollable container
+    st.markdown('<div style="overflow-x: auto; min-width: 100%;">', unsafe_allow_html=True)
     
     # Create the bracket layout
     r32_left, conn1, r16_left, conn2, qf_left, conn3, sf_left, final_col, sf_right, conn4, qf_right, conn5, r16_right, conn6, r32_right = st.columns(
@@ -890,6 +972,8 @@ def bracket_page():
         # Add bottom padding
         st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
 
+    # Close scrollable container
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Champion Display and Save Button
     st.markdown("---")
