@@ -620,7 +620,7 @@ def bracket_page():
     # Mobile-friendly tip
     st.markdown("""
         <div style="text-align: center; margin: 10px 0; padding: 8px; background: #e7f3ff; border-radius: 5px; font-size: 14px;">
-            💡 <strong>Tip:</strong> Scroll horizontally ↔️ to view the entire bracket • Best viewed on desktop or landscape mode
+            💡 <strong>Tip:</strong> Best viewed on desktop or landscape mode
         </div>
     """, unsafe_allow_html=True)
     
