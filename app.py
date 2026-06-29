@@ -2,6 +2,7 @@ import streamlit as st
 from supabase_config import create_user, get_user_by_email, save_bracket, get_user_bracket, get_all_brackets
 from bracket_logic import load_bracket_data, is_selection_locked, get_teams_for_match, validate_bracket, get_available_teams_from_round32, load_completed_matches, is_match_completed, get_completed_match_winner
 from country_flags import get_flag
+from country_colors import get_country_gradient
 import os
 from dotenv import load_dotenv
 import time
@@ -1006,13 +1007,14 @@ def bracket_page():
     
     if st.session_state.champion:
         champion_flag = get_flag(st.session_state.champion)
+        primary_color, secondary_color = get_country_gradient(st.session_state.champion)
         st.markdown(f"""
             <div style="text-align: center; margin-top: 30px; padding: 30px; 
-                        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); 
-                        border-radius: 15px; border: 5px solid gold;">
-                <h1 style="color: white; font-size: 48px; margin: 0;">🏆</h1>
-                <h2 style="color: white; margin: 10px 0;">YOUR CHAMPION</h2>
-                <h1 style="color: white; font-size: 42px; margin: 10px 0;">{champion_flag} {st.session_state.champion}</h1>
+                        background: linear-gradient(135deg, {primary_color} 0%, {secondary_color} 100%); 
+                        border-radius: 15px; border: 5px solid {primary_color}; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <h1 style="color: white; font-size: 48px; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🏆</h1>
+                <h2 style="color: white; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">YOUR CHAMPION</h2>
+                <h1 style="color: white; font-size: 42px; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">{champion_flag} {st.session_state.champion}</h1>
             </div>
         """, unsafe_allow_html=True)
     
