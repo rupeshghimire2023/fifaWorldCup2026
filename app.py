@@ -422,46 +422,48 @@ def render_team_button(team_name, is_winner, can_select, match_id, position, loc
                 st.rerun()
 
 def render_connector_for_pair(match1_id, match2_id, team1_home, team1_away, team2_home, team2_away, selections, is_left_side=True):
-    """Render bracket connector for a PAIR of matches feeding into next round"""
+    """Render simple bracket connector lines for a PAIR of matches feeding into next round"""
     winner1 = get_match_winner(match1_id, selections)
     winner2 = get_match_winner(match2_id, selections)
     
-    # Colors for match 1
-    m1_color = "#28a745" if winner1 else "#cccccc"
-    m1_width = "3px" if winner1 else "2px"
-    
-    # Colors for match 2
-    m2_color = "#28a745" if winner2 else "#cccccc"
-    m2_width = "3px" if winner2 else "2px"
-    
-    # Winner color for main line
-    winner_color = "#28a745" if (winner1 or winner2) else "#cccccc"
-    winner_width = "3px" if (winner1 or winner2) else "2px"
+    # Colors - green if team selected, gray if not
+    m1_color = "#28a745" if winner1 else "#d0d0d0"
+    m2_color = "#28a745" if winner2 else "#d0d0d0"
+    winner_color = "#28a745" if (winner1 or winner2) else "#d0d0d0"
+    line_width = "2px"
     
     if is_left_side:
+        # Left bracket: lines go from left matches to right (next round)
         return f"""
-<div style="height: 200px; position: relative; display: flex; align-items: center; margin: 0; padding: 0; overflow: visible;">
-    <div style="position: absolute; top: 25%; left: 0; width: 100%; height: 0; border-top: {m1_width} solid {m1_color};"></div>
-    <div style="position: absolute; top: 25%; right: 0; height: 50%; width: 0; border-right: {winner_width} solid {winner_color};"></div>
-    <div style="position: absolute; bottom: 25%; left: 0; width: 100%; height: 0; border-top: {m2_width} solid {m2_color};"></div>
-    <div style="position: absolute; top: 50%; right: -10px; width: 10px; height: 0; border-top: {winner_width} solid {winner_color};"></div>
-    <div style="position: absolute; top: 50%; right: -15px; width: 0; height: 0; 
-                border-left: 8px solid {winner_color}; 
-                border-top: 5px solid transparent; 
-                border-bottom: 5px solid transparent;"></div>
+<div style="height: 200px; position: relative; margin: 0; padding: 0;">
+    <!-- Horizontal line from match 1 -->
+    <div style="position: absolute; top: 25%; left: 0; width: 50%; border-top: {line_width} solid {m1_color};"></div>
+    
+    <!-- Vertical line connecting two matches -->
+    <div style="position: absolute; top: 25%; left: 50%; height: 50%; border-left: {line_width} solid {winner_color};"></div>
+    
+    <!-- Horizontal line from match 2 -->
+    <div style="position: absolute; bottom: 25%; left: 0; width: 50%; border-top: {line_width} solid {m2_color};"></div>
+    
+    <!-- Horizontal line to next round -->
+    <div style="position: absolute; top: 50%; left: 50%; width: 50%; border-top: {line_width} solid {winner_color};"></div>
 </div>
 """
     else:
+        # Right bracket: lines go from right matches to left (next round)
         return f"""
-<div style="height: 200px; position: relative; display: flex; align-items: center; margin: 0; padding: 0; overflow: visible;">
-    <div style="position: absolute; top: 25%; right: 0; width: 100%; height: 0; border-top: {m1_width} solid {m1_color};"></div>
-    <div style="position: absolute; top: 25%; left: 0; height: 50%; width: 0; border-left: {winner_width} solid {winner_color};"></div>
-    <div style="position: absolute; bottom: 25%; right: 0; width: 100%; height: 0; border-top: {m2_width} solid {m2_color};"></div>
-    <div style="position: absolute; top: 50%; left: -10px; width: 10px; height: 0; border-top: {winner_width} solid {winner_color};"></div>
-    <div style="position: absolute; top: 50%; left: -15px; width: 0; height: 0; 
-                border-right: 8px solid {winner_color}; 
-                border-top: 5px solid transparent; 
-                border-bottom: 5px solid transparent;"></div>
+<div style="height: 200px; position: relative; margin: 0; padding: 0;">
+    <!-- Horizontal line from match 1 -->
+    <div style="position: absolute; top: 25%; right: 0; width: 50%; border-top: {line_width} solid {m1_color};"></div>
+    
+    <!-- Vertical line connecting two matches -->
+    <div style="position: absolute; top: 25%; right: 50%; height: 50%; border-left: {line_width} solid {winner_color};"></div>
+    
+    <!-- Horizontal line from match 2 -->
+    <div style="position: absolute; bottom: 25%; right: 0; width: 50%; border-top: {line_width} solid {m2_color};"></div>
+    
+    <!-- Horizontal line to next round -->
+    <div style="position: absolute; top: 50%; right: 50%; width: 50%; border-top: {line_width} solid {winner_color};"></div>
 </div>
 """
 
@@ -645,8 +647,8 @@ def bracket_page():
     # Legend
     st.markdown("""
         <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-            <span style="color: #28a745; font-weight: bold;">━━</span> Advancing Team &nbsp;&nbsp;|&nbsp;&nbsp;
-            <span style="color: #cccccc; font-weight: bold;">━━</span> Eliminated Team
+            <span style="color: #28a745; font-weight: bold;">━━</span> Team Selected (Advancing) &nbsp;&nbsp;|&nbsp;&nbsp;
+            <span style="color: #d0d0d0; font-weight: bold;">━━</span> No Selection Yet
         </div>
     """, unsafe_allow_html=True)
     
