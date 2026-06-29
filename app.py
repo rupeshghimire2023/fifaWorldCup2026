@@ -1059,7 +1059,7 @@ def admin_page():
             
             for idx, bracket in enumerate(brackets):
                 champion_flag = get_flag(bracket.get('champion', 'Not selected'))
-                with st.expander(f"🏆 {bracket['user_name']} ({bracket['user_email']}) - Champion: {champion_flag} {bracket.get('champion', 'Not selected')}"):
+                with st.expander(f"🏆 {bracket['user_name']} - Champion: {champion_flag} {bracket.get('champion', 'Not selected')} -Final Score:** {bracket['final_score']['home']} - {bracket['final_score']['away']}"):
                     col1, col2 = st.columns(2)
                     
                     with col1:
