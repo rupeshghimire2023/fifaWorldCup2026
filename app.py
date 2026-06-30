@@ -1070,6 +1070,36 @@ def bracket_page():
                 else:
                     st.error(f"❌ Please complete all selections. {error if error else 'Missing champion selection.'}")
 
+def calculate_bracket_score(selections, completed_matches):
+    """Calculate score for a bracket based on completed matches"""
+    # Point system: R32=1, R16=2, QF=4, SF=8, Final=16, Champion=32
+    score = 0
+    round_points = {
+        'round_of_32': 1,
+        'round_of_16': 2,
+        'quarter_finals': 4,
+        'semi_finals': 8,
+        'final': 16
+    }
+    
+    bracket_data = load_bracket_data()
+    
+    for round_name, points in round_points.items():
+        if round_name == 'final':
+            match = bracket_data['bracket']['final']
+            match_id = str(match['match_id'])
+            if match_id in completed_matches:
+                if selections.get(match_id) == completed_matches[match_id]:
+                    score += points
+        else:
+            for match in bracket_data['bracket'][round_name]:
+                match_id = str(match['match_id'])
+                if match_id in completed_matches:
+                    if selections.get(match_id) == completed_matches[match_id]:
+                        score += points
+    
+    return score
+
 def admin_page():
     st.title("🔐 Admin Dashboard")
     
@@ -1082,87 +1112,323 @@ def admin_page():
             st.query_params.clear()
             st.rerun()
     
-    st.header("All Bracket Submissions")
+    # Admin tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Statistics", "👥 User Brackets", "⚽ Match Results", "🏆 Leaderboard"])
     
     try:
         brackets = get_all_brackets()
+        completed_matches = load_completed_matches()
         
-        if brackets:
-            st.write(f"**Total Submissions:** {len(brackets)}")
+        # TAB 1: Statistics Dashboard
+        with tab1:
+            st.header("📊 User Statistics")
             
-            # Show unique users
-            unique_emails = set(b['user_email'] for b in brackets)
-            st.write(f"**Unique Users:** {len(unique_emails)}")
+            if brackets:
+                total_users = len(brackets)
+                unique_emails = set(b['user_email'] for b in brackets)
+                complete_brackets = sum(1 for b in brackets if b.get('champion'))
+                
+                # Metrics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Registered Users", total_users)
+                with col2:
+                    st.metric("Complete Brackets", complete_brackets)
+                with col3:
+                    st.metric("Incomplete Brackets", total_users - complete_brackets)
+                
+                st.markdown("---")
+                
+                # Champion picks analysis
+                st.subheader("🏆 Champion Predictions")
+                champion_counts = {}
+                for bracket in brackets:
+                    champ = bracket.get('champion')
+                    if champ:
+                        champion_counts[champ] = champion_counts.get(champ, 0) + 1
+                
+                if champion_counts:
+                    sorted_champs = sorted(champion_counts.items(), key=lambda x: x[1], reverse=True)
+                    
+                    champ_cols = st.columns(min(3, len(sorted_champs)))
+                    for idx, (champ, count) in enumerate(sorted_champs[:3]):
+                        with champ_cols[idx]:
+                            percentage = (count / total_users) * 100
+                            flag = get_flag(champ)
+                            st.metric(
+                                f"{flag} {champ}",
+                                f"{count} picks",
+                                f"{percentage:.1f}%"
+                            )
+                    
+                    st.markdown("**All Champion Picks:**")
+                    for champ, count in sorted_champs:
+                        percentage = (count / total_users) * 100
+                        flag = get_flag(champ)
+                        st.write(f"{flag} **{champ}**: {count} picks ({percentage:.1f}%)")
+                
+                st.markdown("---")
+                
+                # Completed matches statistics
+                if completed_matches:
+                    st.subheader("⚽ Completed Matches")
+                    st.write(f"**Total Completed:** {len(completed_matches)} matches")
+                    
+                    for match_id, winner in completed_matches.items():
+                        flag = get_flag(winner)
+                        correct_picks = sum(1 for b in brackets if b.get('selections', {}).get(match_id) == winner)
+                        total_picks = sum(1 for b in brackets if b.get('selections', {}).get(match_id))
+                        
+                        if total_picks > 0:
+                            accuracy = (correct_picks / total_picks) * 100
+                            st.write(f"**Match {match_id}:** {flag} {winner} - {correct_picks}/{total_picks} correct ({accuracy:.1f}%)")
+            else:
+                st.info("No brackets submitted yet.")
+        
+        # TAB 2: Individual Bracket Viewer
+        with tab2:
+            st.header("👥 View User Brackets")
+            
+            if brackets:
+                # Search by email
+                user_emails = [b['user_email'] for b in brackets]
+                selected_email = st.selectbox("Select User", [""] + user_emails)
+                
+                if selected_email:
+                    user_bracket = next((b for b in brackets if b['user_email'] == selected_email), None)
+                    
+                    if user_bracket:
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.write(f"**👤 Name:** {user_bracket['user_name']}")
+                            st.write(f"**📧 Email:** {user_bracket['user_email']}")
+                        
+                        with col2:
+                            champion_flag = get_flag(user_bracket.get('champion', 'Not selected'))
+                            st.write(f"**🏆 Champion:** {champion_flag} {user_bracket.get('champion', 'Not selected')}")
+                            st.write(f"**🕐 Last Updated:** {user_bracket.get('updated_at', 'N/A')}")
+                        
+                        final_score = user_bracket.get('final_score', {})
+                        if final_score and (final_score.get('home') or final_score.get('away')):
+                            st.write(f"**⚽ Final Score Prediction:** {final_score.get('home', '?')} - {final_score.get('away', '?')}")
+                        
+                        # Calculate current score
+                        if completed_matches:
+                            current_score = calculate_bracket_score(user_bracket.get('selections', {}), completed_matches)
+                            st.metric("Current Score", current_score)
+                        
+                        st.markdown("---")
+                        
+                        if user_bracket.get('selections'):
+                            st.subheader("Match Selections")
+                            
+                            bracket_data = load_bracket_data()
+                            
+                            st.write("**Round of 32:**")
+                            r32_cols = st.columns(4)
+                            for idx2, match in enumerate(bracket_data['bracket']['round_of_32']):
+                                match_id = str(match['match_id'])
+                                winner = user_bracket['selections'].get(match_id, 'Not selected')
+                                flag = get_flag(winner)
+                                
+                                # Check if correct
+                                is_correct = match_id in completed_matches and completed_matches[match_id] == winner
+                                status = "✅" if is_correct else ("❌" if match_id in completed_matches else "")
+                                
+                                with r32_cols[idx2 % 4]:
+                                    st.write(f"M{match_id}: {flag} {winner} {status}")
+                            
+                            st.write("**Round of 16:**")
+                            r16_cols = st.columns(4)
+                            for idx2, match in enumerate(bracket_data['bracket']['round_of_16']):
+                                match_id = str(match['match_id'])
+                                winner = user_bracket['selections'].get(match_id, 'Not selected')
+                                flag = get_flag(winner)
+                                
+                                is_correct = match_id in completed_matches and completed_matches[match_id] == winner
+                                status = "✅" if is_correct else ("❌" if match_id in completed_matches else "")
+                                
+                                with r16_cols[idx2 % 4]:
+                                    st.write(f"M{match_id}: {flag} {winner} {status}")
+                            
+                            st.write("**Quarter Finals:**")
+                            qf_cols = st.columns(4)
+                            for idx2, match in enumerate(bracket_data['bracket']['quarter_finals']):
+                                match_id = str(match['match_id'])
+                                winner = user_bracket['selections'].get(match_id, 'Not selected')
+                                flag = get_flag(winner)
+                                
+                                is_correct = match_id in completed_matches and completed_matches[match_id] == winner
+                                status = "✅" if is_correct else ("❌" if match_id in completed_matches else "")
+                                
+                                with qf_cols[idx2 % 4]:
+                                    st.write(f"M{match_id}: {flag} {winner} {status}")
+                            
+                            st.write("**Semi Finals:**")
+                            sf_cols = st.columns(2)
+                            for idx2, match in enumerate(bracket_data['bracket']['semi_finals']):
+                                match_id = str(match['match_id'])
+                                winner = user_bracket['selections'].get(match_id, 'Not selected')
+                                flag = get_flag(winner)
+                                
+                                is_correct = match_id in completed_matches and completed_matches[match_id] == winner
+                                status = "✅" if is_correct else ("❌" if match_id in completed_matches else "")
+                                
+                                with sf_cols[idx2]:
+                                    st.write(f"M{match_id}: {flag} {winner} {status}")
+                            
+                            st.write("**Final:**")
+                            final_match_id = str(bracket_data['bracket']['final']['match_id'])
+                            final_winner = user_bracket['selections'].get(final_match_id, 'Not selected')
+                            final_flag = get_flag(final_winner)
+                            
+                            is_correct = final_match_id in completed_matches and completed_matches[final_match_id] == final_winner
+                            status = "✅" if is_correct else ("❌" if final_match_id in completed_matches else "")
+                            
+                            st.write(f"M{final_match_id}: {final_flag} {final_winner} {status}")
+            else:
+                st.info("No brackets submitted yet.")
+        
+        # TAB 3: Match Results Management
+        with tab3:
+            st.header("⚽ Match Results Management")
+            
+            st.subheader("Add/Update Match Result")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                match_id_input = st.text_input("Match ID", placeholder="e.g., 73")
+            with col2:
+                winner_input = st.text_input("Winner Team", placeholder="e.g., Canada")
+            
+            if st.button("Update Match Result", type="primary"):
+                if match_id_input and winner_input:
+                    # Load current completed matches
+                    completed = load_completed_matches()
+                    completed[match_id_input] = winner_input
+                    
+                    # Save to file
+                    import json
+                    with open('completed_matches.json', 'w') as f:
+                        json.dump(completed, f, indent=2)
+                    
+                    st.success(f"✅ Match {match_id_input} result updated: {winner_input} wins!")
+                    st.rerun()
+                else:
+                    st.error("Please fill in both Match ID and Winner")
             
             st.markdown("---")
             
-            for idx, bracket in enumerate(brackets):
-                champion_flag = get_flag(bracket.get('champion', 'Not selected'))
-                with st.expander(f"🏆 {bracket['user_name']} - Champion: {champion_flag} {bracket.get('champion', 'Not selected')} -Final Score:** {bracket['final_score']['home']} - {bracket['final_score']['away']}"):
-                    col1, col2 = st.columns(2)
-                    
+            st.subheader("Current Completed Matches")
+            if completed_matches:
+                for match_id, winner in sorted(completed_matches.items(), key=lambda x: int(x[0])):
+                    flag = get_flag(winner)
+                    col1, col2 = st.columns([3, 1])
                     with col1:
-                        st.write(f"**👤 Name:** {bracket['user_name']}")
-                        st.write(f"**📧 Email:** {bracket['user_email']}")
-                    
+                        st.write(f"**Match {match_id}:** {flag} {winner}")
                     with col2:
-                        st.write(f"**🏆 Champion:** {champion_flag} {bracket.get('champion', 'Not selected')}")
-                        st.write(f"**🕐 Last Updated:** {bracket.get('updated_at', 'N/A')}")
-                        
-                        final_score = bracket.get('final_score', {})
-                        if final_score and (final_score.get('home') or final_score.get('away')):
-                            st.write(f"**⚽ Final Score:** {final_score.get('home', '?')} - {final_score.get('away', '?')}")
+                        if st.button("Delete", key=f"del_{match_id}"):
+                            completed = load_completed_matches()
+                            del completed[match_id]
+                            
+                            import json
+                            with open('completed_matches.json', 'w') as f:
+                                json.dump(completed, f, indent=2)
+                            
+                            st.success(f"Match {match_id} result deleted")
+                            st.rerun()
+            else:
+                st.info("No completed matches yet")
+        
+        # TAB 4: Leaderboard
+        with tab4:
+            st.header("🏆 Leaderboard")
+            
+            if brackets and completed_matches:
+                # Calculate scores for all users
+                leaderboard = []
+                for bracket in brackets:
+                    score = calculate_bracket_score(bracket.get('selections', {}), completed_matches)
+                    leaderboard.append({
+                        'rank': 0,
+                        'name': bracket['user_name'],
+                        'email': bracket['user_email'],
+                        'champion': bracket.get('champion', 'Not selected'),
+                        'score': score
+                    })
+                
+                # Sort by score
+                leaderboard.sort(key=lambda x: x['score'], reverse=True)
+                
+                # Assign ranks
+                for idx, entry in enumerate(leaderboard):
+                    entry['rank'] = idx + 1
+                
+                # Display leaderboard
+                st.markdown(f"**Total Matches Completed:** {len(completed_matches)}")
+                st.markdown(f"**Maximum Possible Score:** Varies by matches completed")
+                st.markdown("---")
+                
+                # Top 3
+                if len(leaderboard) >= 1:
+                    st.subheader("🥇 Top 3")
+                    top_cols = st.columns(min(3, len(leaderboard)))
                     
-                    if bracket.get('selections'):
-                        st.subheader("Match Selections")
-                        
-                        bracket_data = load_bracket_data()
-                        
-                        st.write("**Round of 32:**")
-                        r32_cols = st.columns(4)
-                        for idx2, match in enumerate(bracket_data['bracket']['round_of_32']):
-                            match_id = str(match['match_id'])
-                            winner = bracket['selections'].get(match_id, 'Not selected')
-                            flag = get_flag(winner)
-                            with r32_cols[idx2 % 4]:
-                                st.write(f"M{match_id}: {flag} {winner}")
-                        
-                        st.write("**Round of 16:**")
-                        r16_cols = st.columns(4)
-                        for idx2, match in enumerate(bracket_data['bracket']['round_of_16']):
-                            match_id = str(match['match_id'])
-                            winner = bracket['selections'].get(match_id, 'Not selected')
-                            flag = get_flag(winner)
-                            with r16_cols[idx2 % 4]:
-                                st.write(f"M{match_id}: {flag} {winner}")
-                        
-                        st.write("**Quarter Finals:**")
-                        qf_cols = st.columns(4)
-                        for idx2, match in enumerate(bracket_data['bracket']['quarter_finals']):
-                            match_id = str(match['match_id'])
-                            winner = bracket['selections'].get(match_id, 'Not selected')
-                            flag = get_flag(winner)
-                            with qf_cols[idx2 % 4]:
-                                st.write(f"M{match_id}: {flag} {winner}")
-                        
-                        st.write("**Semi Finals:**")
-                        sf_cols = st.columns(2)
-                        for idx2, match in enumerate(bracket_data['bracket']['semi_finals']):
-                            match_id = str(match['match_id'])
-                            winner = bracket['selections'].get(match_id, 'Not selected')
-                            flag = get_flag(winner)
-                            with sf_cols[idx2]:
-                                st.write(f"M{match_id}: {flag} {winner}")
-                        
-                        st.write("**Final:**")
-                        final_match_id = str(bracket_data['bracket']['final']['match_id'])
-                        final_winner = bracket['selections'].get(final_match_id, 'Not selected')
-                        final_flag = get_flag(final_winner)
-                        st.write(f"M{final_match_id}: {final_flag} {final_winner}")
-        else:
-            st.info("No brackets submitted yet.")
+                    medals = ["🥇", "🥈", "🥉"]
+                    for idx in range(min(3, len(leaderboard))):
+                        with top_cols[idx]:
+                            entry = leaderboard[idx]
+                            champion_flag = get_flag(entry['champion'])
+                            st.markdown(f"""
+                                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 2px solid #ddd;">
+                                    <h1>{medals[idx]}</h1>
+                                    <h3>{entry['name']}</h3>
+                                    <p><strong>Score: {entry['score']}</strong></p>
+                                    <p>Champion: {champion_flag} {entry['champion']}</p>
+                                </div>
+                            """, unsafe_allow_html=True)
+                
+                st.markdown("---")
+                
+                # Full leaderboard
+                st.subheader("Full Rankings")
+                for entry in leaderboard:
+                    champion_flag = get_flag(entry['champion'])
+                    
+                    # Highlight top 3
+                    bg_color = "#fff3cd" if entry['rank'] <= 3 else "#ffffff"
+                    
+                    st.markdown(f"""
+                        <div style="padding: 10px; margin: 5px 0; background: {bg_color}; border-radius: 5px; border: 1px solid #ddd;">
+                            <strong>#{entry['rank']}</strong> | <strong>{entry['name']}</strong> | Score: <strong>{entry['score']}</strong> | Champion: {champion_flag} {entry['champion']}
+                        </div>
+                    """, unsafe_allow_html=True)
+                
+                # Export button
+                st.markdown("---")
+                if st.button("📥 Export Leaderboard as CSV"):
+                    import csv
+                    from io import StringIO
+                    
+                    output = StringIO()
+                    writer = csv.DictWriter(output, fieldnames=['rank', 'name', 'email', 'score', 'champion'])
+                    writer.writeheader()
+                    writer.writerows(leaderboard)
+                    
+                    st.download_button(
+                        label="Download CSV",
+                        data=output.getvalue(),
+                        file_name="leaderboard.csv",
+                        mime="text/csv"
+                    )
+            elif not completed_matches:
+                st.info("No matches completed yet. Leaderboard will appear once matches are finished.")
+            else:
+                st.info("No brackets submitted yet.")
+                
     except Exception as e:
-        st.error(f"Error loading brackets: {str(e)}")
+        st.error(f"Error loading admin data: {str(e)}")
 
 def main():
     # Check for admin route
