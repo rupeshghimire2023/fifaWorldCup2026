@@ -197,10 +197,14 @@ def update_activity():
 def login_page():
     st.title("⚽ FIFA World Cup 2026 Bracket Challenge")
     
-    tab1, tab2 = st.tabs(["Login", "Sign Up"])
+    # Check if signup is locked (after deadline)
+    signup_locked = is_selection_locked()
     
-    with tab1:
-        st.subheader("Login")
+    if signup_locked:
+        # Only show login after deadline
+        st.subheader("Login to View Your Bracket")
+        st.info("🔒 Signup is closed. The tournament has started! Login to view your predictions.")
+        
         email = st.text_input("Email", key="login_email")
         
         if st.button("Login", key="login_btn"):
@@ -222,12 +226,40 @@ def login_page():
                 persist_session()
                 st.rerun()
             else:
-                st.error("User not found. Please sign up first.")
-    
-    with tab2:
-        st.subheader("Sign Up")
-        name = st.text_input("Full Name", key="signup_name")
-        email = st.text_input("Email", key="signup_email")
+                st.error("User not found. Signup is now closed.")
+    else:
+        # Show both login and signup before deadline
+        tab1, tab2 = st.tabs(["Login", "Sign Up"])
+        
+        with tab1:
+            st.subheader("Login")
+            email = st.text_input("Email", key="login_email")
+            
+            if st.button("Login", key="login_btn"):
+                user = get_user_by_email(email)
+                if user:
+                    st.session_state.logged_in = True
+                    st.session_state.user_id = user['id']
+                    st.session_state.user_email = user['email']
+                    st.session_state.user_name = user['name']
+                    st.session_state.last_activity = time.time()
+                    
+                    bracket = get_user_bracket(user['id'])
+                    if bracket:
+                        st.session_state.selections = bracket.get('selections', {})
+                        st.session_state.champion = bracket.get('champion')
+                        st.session_state.final_score = bracket.get('final_score', {"home": "", "away": ""})
+                    
+                    # Persist session
+                    persist_session()
+                    st.rerun()
+                else:
+                    st.error("User not found. Please sign up first.")
+        
+        with tab2:
+            st.subheader("Sign Up")
+            name = st.text_input("Full Name", key="signup_name")
+            email = st.text_input("Email", key="signup_email")
         
         if st.button("Sign Up", key="signup_btn"):
             if name and email:
@@ -609,11 +641,18 @@ def bracket_page():
                     st.balloons()
                 else:
                     st.error(f"❌ Please complete all selections. {error if error else 'Missing champion selection.'}")
+        else:
+            # Show view-only badge instead of save button after deadline
+            st.markdown("""
+                <div style="padding: 8px; background: #dc3545; color: white; border-radius: 5px; text-align: center; font-weight: bold;">
+                    👁️ VIEW ONLY
+                </div>
+            """, unsafe_allow_html=True)
     
     locked = is_selection_locked()
     
     if locked:
-        st.error("🔒 Bracket selections are locked. The deadline was July 4, 2026 at 12:00 PM EST.")
+        st.error("🔒 Bracket is now VIEW ONLY. The deadline was July 4, 2026 at 12:00 PM EST.")
     else:
         st.info("⏰ You can modify your bracket until July 4, 2026 at 12:00 PM EST")
     
