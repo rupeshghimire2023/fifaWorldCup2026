@@ -3,6 +3,7 @@ from supabase_config import create_user, get_user_by_email, save_bracket, get_us
 from bracket_logic import load_bracket_data, is_selection_locked, get_teams_for_match, validate_bracket, get_available_teams_from_round32, load_completed_matches, is_match_completed, get_completed_match_winner
 from country_flags import get_flag
 from country_colors import get_country_gradient
+from live_match_tracker import get_live_match_from_file, format_live_match_display, update_live_match, clear_live_match
 import os
 from dotenv import load_dotenv
 import time
@@ -192,6 +193,68 @@ def update_activity():
         st.session_state.last_activity = current_time
     if st.session_state.admin_logged_in:
         st.session_state.admin_last_activity = current_time
+
+def render_live_match_navbar():
+    """Render live match ticker navbar"""
+    match_data = get_live_match_from_file()
+    
+    if match_data and match_data.get('match_id'):
+        formatted = format_live_match_display(match_data)
+        
+        if formatted:
+            # Color based on status
+            status_colors = {
+                'live': '#28a745',  # Green for live
+                'halftime': '#ffc107',  # Yellow for halftime
+                'finished': '#6c757d',  # Gray for finished
+                'scheduled': '#17a2b8'  # Blue for scheduled
+            }
+            bg_color = status_colors.get(formatted['status'], '#17a2b8')
+            
+            # Animated pulse for live matches
+            animation = """
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                }
+            """ if formatted['status'] == 'live' else ""
+            
+            animation_style = "animation: pulse 2s infinite;" if formatted['status'] == 'live' else ""
+            
+            home_flag = get_flag(formatted['team_home'])
+            away_flag = get_flag(formatted['team_away'])
+            
+            st.markdown(f"""
+                <style>
+                {animation}
+                </style>
+                <div style="
+                    position: sticky;
+                    top: 0;
+                    z-index: 999;
+                    background: {bg_color};
+                    color: white;
+                    padding: 12px 20px;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 16px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    {animation_style}
+                    border-bottom: 3px solid rgba(255,255,255,0.3);
+                ">
+                    <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; margin-right: 15px;">
+                        {formatted['status_text']}
+                    </span>
+                    <span style="font-size: 18px;">
+                        {home_flag} {formatted['team_home']} 
+                        <span style="font-size: 24px; margin: 0 15px; color: #ffd700;">{formatted['score_home']} - {formatted['score_away']}</span>
+                        {formatted['team_away']} {away_flag}
+                    </span>
+                    <span style="margin-left: 15px; font-size: 12px; opacity: 0.9;">
+                        Match {formatted['match_id']}
+                    </span>
+                </div>
+            """, unsafe_allow_html=True)
 
 
 def login_page():
@@ -596,6 +659,9 @@ def bracket_page():
         }
         </script>
     """, unsafe_allow_html=True)
+    
+    # Render live match navbar at the top
+    render_live_match_navbar()
     
     st.markdown(f"""
         <div class="bracket-header">
@@ -1113,7 +1179,7 @@ def admin_page():
             st.rerun()
     
     # Admin tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Statistics", "👥 User Brackets", "⚽ Match Results", "🏆 Leaderboard"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Statistics", "👥 User Brackets", "⚽ Match Results", "🏆 Leaderboard", "📡 Live Match"])
     
     try:
         brackets = get_all_brackets()
@@ -1426,6 +1492,100 @@ def admin_page():
                 st.info("No matches completed yet. Leaderboard will appear once matches are finished.")
             else:
                 st.info("No brackets submitted yet.")
+        
+        # TAB 5: Live Match Management
+        with tab5:
+            st.header("📡 Live Match Management")
+            
+            st.subheader("Update Live Match Display")
+            st.info("This will update the live match ticker shown to all users at the top of the bracket page.")
+            
+            # Current live match display
+            current_match = get_live_match_from_file()
+            if current_match and current_match.get('match_id'):
+                st.success("✅ Live match is currently active")
+                formatted = format_live_match_display(current_match)
+                if formatted:
+                    st.markdown(f"""
+                        **Current Display:**  
+                        {formatted['status_text']} | {get_flag(formatted['team_home'])} {formatted['team_home']} 
+                        **{formatted['score_home']} - {formatted['score_away']}** 
+                        {formatted['team_away']} {get_flag(formatted['team_away'])} | Match {formatted['match_id']}
+                    """)
+            else:
+                st.info("No live match currently displayed")
+            
+            st.markdown("---")
+            
+            # Form to update live match
+            with st.form("live_match_form"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    match_id = st.text_input("Match ID", placeholder="e.g., 73")
+                    team_home = st.text_input("Home Team", placeholder="e.g., Canada")
+                    score_home = st.number_input("Home Score", min_value=0, value=0, step=1)
+                
+                with col2:
+                    status = st.selectbox("Status", ["live", "halftime", "finished", "scheduled"])
+                    team_away = st.text_input("Away Team", placeholder="e.g., South Africa")
+                    score_away = st.number_input("Away Score", min_value=0, value=0, step=1)
+                
+                minute = st.text_input("Minute (optional, for live matches)", placeholder="e.g., 67")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    submitted = st.form_submit_button("🔴 Update Live Match", type="primary", use_container_width=True)
+                
+                with col2:
+                    clear_button = st.form_submit_button("🗑️ Clear Live Match", use_container_width=True)
+                
+                if submitted:
+                    if match_id and team_home and team_away:
+                        success = update_live_match(
+                            match_id=match_id,
+                            team_home=team_home,
+                            team_away=team_away,
+                            score_home=int(score_home),
+                            score_away=int(score_away),
+                            status=status,
+                            minute=minute if minute else None
+                        )
+                        
+                        if success:
+                            st.success("✅ Live match updated! Users will see this at the top of the page.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update live match")
+                    else:
+                        st.error("Please fill in Match ID, Home Team, and Away Team")
+                
+                if clear_button:
+                    if clear_live_match():
+                        st.success("✅ Live match cleared!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to clear live match")
+            
+            st.markdown("---")
+            
+            st.subheader("📝 Instructions")
+            st.markdown("""
+            1. **Match ID**: Enter the official match number (e.g., 73)
+            2. **Teams**: Enter the team names exactly as they appear in the bracket
+            3. **Scores**: Enter current scores (0-0 for scheduled matches)
+            4. **Status**:
+               - **live**: Match is currently being played (shows animated ticker)
+               - **halftime**: Match is at halftime
+               - **finished**: Match has ended
+               - **scheduled**: Match hasn't started yet
+            5. **Minute**: Optional field for live matches (e.g., "45+2" for injury time)
+            6. Click "Update Live Match" to activate the ticker
+            7. Click "Clear Live Match" to remove the ticker from display
+            
+            **Note**: The ticker appears at the very top of the bracket page for all users.
+            """)
                 
     except Exception as e:
         st.error(f"Error loading admin data: {str(e)}")
