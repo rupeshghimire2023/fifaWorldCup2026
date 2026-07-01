@@ -323,37 +323,37 @@ def login_page():
             st.subheader("Sign Up")
             name = st.text_input("Full Name", key="signup_name")
             email = st.text_input("Email", key="signup_email")
-        
-        if st.button("Sign Up", key="signup_btn"):
-            if name and email:
-                user_id, error = create_user(email, name)
-                if error:
-                    st.error(error)
-                else:
-                    # Auto-login after successful signup
-                    st.session_state.logged_in = True
-                    st.session_state.user_id = user_id
-                    st.session_state.user_name = name
-                    st.session_state.user_email = email
-                    st.session_state.last_activity = time.time()
-                    
-                    # Load existing bracket if any
-                    existing_bracket = get_user_bracket(user_id)
-                    if existing_bracket:
-                        st.session_state.selections = existing_bracket.get('selections', {})
-                        st.session_state.champion = existing_bracket.get('champion')
-                        st.session_state.final_score = existing_bracket.get('final_score', {"home": "", "away": ""})
+            
+            if st.button("Sign Up", key="signup_btn"):
+                if name and email:
+                    user_id, error = create_user(email, name)
+                    if error:
+                        st.error(error)
                     else:
-                        st.session_state.selections = {}
-                        st.session_state.champion = None
-                        st.session_state.final_score = {"home": "", "away": ""}
-                    
-                    # Persist session
-                    persist_session()
-                    st.success("✅ Account created successfully! Redirecting to bracket...")
-                    st.rerun()
-            else:
-                st.error("Please fill in all fields.")
+                        # Auto-login after successful signup
+                        st.session_state.logged_in = True
+                        st.session_state.user_id = user_id
+                        st.session_state.user_name = name
+                        st.session_state.user_email = email
+                        st.session_state.last_activity = time.time()
+                        
+                        # Load existing bracket if any
+                        existing_bracket = get_user_bracket(user_id)
+                        if existing_bracket:
+                            st.session_state.selections = existing_bracket.get('selections', {})
+                            st.session_state.champion = existing_bracket.get('champion')
+                            st.session_state.final_score = existing_bracket.get('final_score', {"home": "", "away": ""})
+                        else:
+                            st.session_state.selections = {}
+                            st.session_state.champion = None
+                            st.session_state.final_score = {"home": "", "away": ""}
+                        
+                        # Persist session
+                        persist_session()
+                        st.success("✅ Account created successfully! Redirecting to bracket...")
+                        st.rerun()
+                else:
+                    st.error("Please fill in all fields.")
 
 def admin_login_page():
     """Separate admin login page accessible via /admin route"""
